@@ -47,7 +47,7 @@ curl -i http://127.0.0.1:5000/api/data -H "Authorization: Bearer $TOKEN"
 
 ## CI security scanning
 
-GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The local scan results for this checkout are in `evidence/`; the GitHub Actions result URL and screenshots should be added after the workflow completes.
+GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The first successful run for this update is [Actions run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796). The local scan results for this checkout are in `evidence/`.
 
 ## CVE study: CVE-2021-41773
 
@@ -77,6 +77,6 @@ On 2026-10-25: 4 pytest tests passed; Bandit reported zero unsuppressed findings
 4. **Risks of not auditing dependencies?** Known vulnerable or abandoned packages can introduce exploitable flaws, license or supply-chain risk, and hidden transitive dependencies. An inventory and timely update process help identify and prioritize these issues.
 5. **Why Docker and Vulhub?** Containers make vulnerable versions reproducible and easier to reset, while Vulhub supplies documented, isolated compose environments. This reduces host changes and supports before/after comparison, though network isolation and cleanup are still necessary.
 
-## Remaining submission item
+## Submission note
 
-After the push, confirm that the Actions workflow succeeds and add its run link and a screenshot showing successful test, SAST, and SCA steps. The course manual's preferred SCA tool should be confirmed with the instructor; this Python project uses pip-audit for its pinned dependencies.
+The linked Actions run completed successfully, including the tests, SAST, SCA, and report upload. The course manual's preferred SCA tool should be confirmed with the instructor; this Python project uses pip-audit for its pinned dependencies.

@@ -34,7 +34,7 @@ On 2026-10-25, the local checks completed with:
 - pip-audit: **no known vulnerabilities** in the 3 pinned runtime dependencies.
 - `pip check`: **no broken requirements**.
 
-JSON outputs are in `evidence/`. These results were produced locally. The GitHub Actions run link and screenshot should be added after the remote workflow finishes; no remote result is claimed here.
+JSON outputs are in `evidence/`. These results were produced locally. The first successful GitHub Actions run for this update is [run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796); its test, SAST, SCA, and artifact-upload steps all completed successfully.
 
 ## 4. CVE analysis: CVE-2021-41773
 
@@ -62,7 +62,7 @@ The complete safe excerpt and lab setup are recorded in `evidence/CVE-2021-41773
 
 ## 6. Deliverables
 
-Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). Add the actual GitHub Actions run link and successful run screenshot after the workflow completes.
+Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The successful Actions run and downloadable `security-reports` artifact are available at [run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796).
 
 ## 7. Control questions
 
