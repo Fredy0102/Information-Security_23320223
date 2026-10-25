@@ -5,59 +5,69 @@
 **Name:** Kong Mingzhe  
 **HDU number:** 23320223  
 **Course:** Information Security  
-**Date:** 20 October 2026
+**Date:** 25 October 2026
 
 ## Purpose
 
-To develop a small REST API with basic protections against injection, cross-site scripting, and broken authentication; configure automated static and dependency security checks; and study the root cause and remediation of CVE-2018-1000656 in a controlled Vulhub environment.
+Develop a small REST API with protections against SQL injection, cross-site scripting, and broken authentication; configure automated static and dependency security checks; and reproduce and analyze a real CVE in a controlled local container lab.
 
 ## 1. Stack and project
 
-The application uses Python 3, Flask, SQLite, PyJWT, and Werkzeug's scrypt password hashing. GitHub Actions is configured for push and pull request events. The API code and workflow are in this submission folder.
+The application uses Python 3, Flask, SQLite, PyJWT, and Werkzeug's scrypt password hashing. The GitHub Actions workflow runs tests, Bandit SAST, and pip-audit SCA on push and pull request events. The API source is `app.py`; the workflow is `.github/workflows/ci.yml`.
 
 ## 2. API and security design
 
-The service implements `POST /auth/login`, authenticated `GET /api/data`, authenticated `POST /api/posts`, and `GET /health`. SQLite statements bind all user-controlled values through placeholders. Passwords are stored as scrypt hashes. A successful login returns a short-lived HS256 JWT; middleware verifies signature, issuer, expiry, and required claims before protected handlers run. Returned post text is HTML-escaped. Input types and lengths are checked.
+The service implements `POST /auth/login`, authenticated `GET /api/data`, authenticated `POST /api/posts`, and `GET /health`. SQLite statements bind user-controlled values through placeholders. Passwords are stored as salted scrypt hashes. A successful login returns a short-lived HS256 JWT; middleware verifies the signature, issuer, expiry, and required claims before protected handlers run. Returned post text is HTML-escaped. Input types and lengths are checked.
 
-The seeded account (`student / ChangeMe123!`) is for local demonstration only. The app requires an environment-provided JWT secret and binds to loopback by default.
+The seeded account (`student / ChangeMe123!`) is for the loopback-only educational demonstration; it must not be exposed to a shared network. The app requires an environment-provided JWT secret and binds to 127.0.0.1 by default.
 
 ## 3. CI/CD and scanners
 
-The workflow runs Bandit (SAST), pip-audit (SCA), and pytest on each push and pull request. It uploads JSON scanner reports as workflow artifacts. The workflow configuration is present at `.github/workflows/ci.yml`.
+The workflow runs Bandit (SAST), pip-audit (SCA), and pytest on pushes and pull requests. It uploads JSON scanner reports as the `security-reports` artifact. The Bandit B105 alert on the literal `Bearer` is a false positive: this is the standard HTTP authentication scheme label, not a credential; the source documents that narrow suppression.
 
-**Run result and screenshots:** Not available yet. The workflow has not been published or run remotely, so this report does not claim a passing pipeline or zero findings. Add actual GitHub Actions screenshots after running the workflow.
+### Local results
 
-## 4. CVE analysis
+On 2026-10-25, the local checks completed with:
 
-Selected vulnerability: **CVE-2018-1000656**, affecting Flask before 0.12.3. Improper validation in JSON decoding can cause excessive memory consumption and denial of service when crafted JSON using a non-text-related encoding is handled. This is an input-validation flaw with an availability impact. The lab manual suggests a Vulhub Flask environment, but the exact directory and README should be checked against the current Vulhub revision before execution.
+- pytest: **4 passed**.
+- Bandit: **0 unsuppressed findings**.
+- pip-audit: **no known vulnerabilities** in the 3 pinned runtime dependencies.
+- `pip check`: **no broken requirements**.
 
-**Root cause:** a request body reaches the affected JSON decoding logic without adequate validation of the relevant encoding; processing can consume unusually large memory. This is not SQL injection or code execution. The principal impact described is denial of service.
+JSON outputs are in `evidence/`. These results were produced locally. The GitHub Actions run link and screenshot should be added after the remote workflow finishes; no remote result is claimed here.
 
-**Fix:** use Flask 0.12.3 or later, preferably a currently supported release that remains compatible with the environment. This project uses Flask 3.1.3. For the isolated Vulhub reproduction, patch the environment's version pin and rebuild, then replay the identical documented request and verify that ordinary JSON still works.
+## 4. CVE analysis: CVE-2021-41773
+
+Apache HTTP Server 2.4.49 introduced a path-normalization flaw. Under vulnerable access-control configuration, encoded dot segments can traverse outside the intended document root. Apache 2.4.50's fix was incomplete for the related CVE-2021-42013; 2.4.51 contains the fix. References: [Apache HTTP Server security advisories](https://httpd.apache.org/security/vulnerabilities_24.html) and [Vulhub CVE-2021-41773 lab](https://github.com/vulhub/vulhub/tree/master/httpd/CVE-2021-41773).
+
+The impact demonstrated here is file disclosure from the disposable container. CGI was not enabled and no command execution was attempted. Real impact depends on the server version and access-control configuration.
 
 ## 5. Reproduction and verification record
 
-The vulnerable and fixed Vulhub containers have **not** been run in this environment. Docker was unavailable in the current shell, and outbound GitHub access failed. Consequently, no attack commands, response captures, container logs, screenshots, or before/after claims are fabricated here.
+The local Docker comparison used loopback-only port mappings: vulnerable Apache 2.4.49 at `127.0.0.1:8181`, fixed Apache 2.4.51 at `127.0.0.1:8182`.
 
-Complete this section after running the selected environment according to its own README:
+The documented traversal request was sent using curl's `--path-as-is` option to preserve encoded dot segments:
 
-- Vulhub revision and directory: pending
-- Exact documented request/command: pending
-- Vulnerable version and observed result: pending
-- Root cause evidence from source/configuration: pending
-- Changed files and fixed version: pending
-- Same request against fixed service: pending
-- Regression request and result: pending
-- Screenshots: pending
+```sh
+curl -i --path-as-is 'http://127.0.0.1:8181/icons/.%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd'
+curl -i --path-as-is 'http://127.0.0.1:8182/icons/.%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd'
+```
+
+| Test | Observed response | Result |
+|---|---|---|
+| Apache 2.4.49 vulnerable configuration | HTTP 200; body contained a `root:` entry from the container `/etc/passwd` | File disclosure reproduced |
+| Apache 2.4.51 fixed version | HTTP 400 Bad Request; body contained no `root:` entry | Same file disclosure was blocked |
+
+The complete safe excerpt and lab setup are recorded in `evidence/CVE-2021-41773-results.md` and `cve-lab/CVE-2021-41773/README.md`. After the comparison, `docker compose --profile vulnerable --profile fixed down --rmi local` stopped and removed the containers, network, and locally built image.
 
 ## 6. Deliverables
 
-Included: API source, requirements, tests, GitHub Actions workflow, README, this report, and a Vulhub fix-folder placeholder. Public repository URL and successful workflow URL remain pending publication and execution.
+Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). Add the actual GitHub Actions run link and successful run screenshot after the workflow completes.
 
 ## 7. Control questions
 
-1. **Why bcrypt/scrypt rather than SHA-256?** Password hashing should be intentionally slow and salted. Fast SHA-256 supports far more guesses per second; a password hashing algorithm raises the cost of offline brute force and unique salts prevent equal passwords from producing equal stored values.
+1. **Why bcrypt/scrypt rather than SHA-256?** Password hashing should be intentionally slow and salted. Fast SHA-256 supports far more guesses per second; a password hashing algorithm raises the cost of offline brute force, and unique salts prevent equal passwords from producing equal stored values.
 2. **SAST and DAST:** SAST analyzes code without executing the service. DAST probes a running service and evaluates its observable responses.
-3. **JWT:** The header describes the token and algorithm, the payload contains claims such as subject and expiry, and a signature protects integrity/authenticity. A server checks the signature and relevant claims. Ordinary signed JWT payloads are readable, not encrypted.
+3. **JWT:** The header describes the token and algorithm, the payload contains claims such as subject and expiry, and a signature protects integrity and authenticity. A server checks the signature and relevant claims. Ordinary signed JWT payloads are readable, not encrypted.
 4. **Dependency audit risks:** A project can silently inherit known vulnerabilities, compromised or abandoned packages, and risky transitive dependencies. Auditing makes those risks visible for remediation.
 5. **Docker and Vulhub:** They package known vulnerable versions in reproducible environments that can be started, compared, and removed. This limits host modification and improves repeatability, provided the lab remains isolated.

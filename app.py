@@ -122,7 +122,8 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         ).fetchone()
         if user is None or not check_password_hash(user["password_hash"], password):
             return jsonify(error="Invalid credentials"), 401
-        response = {"access_token": issue_token(user["username"]), "token_type": "Bearer"}
+        # Bandit B105 treats the standard HTTP auth-scheme label as a password.
+        response = {"access_token": issue_token(user["username"]), "token_type": "Bearer"}  # nosec B105
         return jsonify(response), 200
 
     @app.get("/api/data")
