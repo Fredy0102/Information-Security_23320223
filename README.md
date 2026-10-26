@@ -156,7 +156,11 @@ Port 2222 (vulnerable): uid=0(root) gid=0(root) groups=0(root)
 Port 2223 (fixed):      Authentication bypass was rejected or the service closed the session: Timeout opening channel
 ```
 
-To make the requested visual evidence, capture the terminal showing each command and its corresponding output while running the steps above, then add those unedited captures under `evidence/` and link them here. The repository currently contains the reproducible commands and recorded output, but does not yet contain actual CVE proof screenshots.
+The following unedited terminal captures show the containers starting, dependency installation, the vulnerable and fixed version checks, and cleanup. The host-platform warning is informational: Docker ran the vulnerable `linux/amd64` image on the Apple Silicon `linux/arm64/v8` host. Paramiko's TripleDES deprecation message is also a warning; the proof completed and printed the results below.
+
+![CVE lab startup and dependency installation](evidence/CVE-2018-10933-run-setup.png)
+
+![CVE proof results and Docker cleanup](evidence/CVE-2018-10933-run-results.png)
 
 Exact setup and observations are also in [`cve-lab/CVE-2018-10933/README.md`](cve-lab/CVE-2018-10933/README.md).
 
