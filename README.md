@@ -108,7 +108,7 @@ This screenshot records the configured Git identity and GitHub remote used for p
 
 ### Step 10 — Verify the automated GitHub Actions workflow
 
-The workflow runs Bandit for static analysis, OWASP Dependency-Check and pip-audit for dependency checks, and pytest. The OWASP scan is pinned to the `13.0.0` container image and enables Dependency-Check's experimental Python analyzer for `requirements.txt`. pip-audit remains as a second Python-focused dependency check. All scanner reports are uploaded in the `security-reports` artifact.
+The workflow runs Bandit for static analysis, OWASP Dependency-Check and pip-audit for dependency checks, and pytest. The OWASP GitHub Action is pinned to a full commit SHA and enables Dependency-Check's experimental Python analyzer for `requirements.txt`; its preloaded vulnerability database is used without sending an API key to the scan container. pip-audit remains as a second Python-focused dependency check. All scanner reports are uploaded in the `security-reports` artifact.
 
 ![Step 10: Bandit, pip-audit, and scanner-report artifact upload](evidence/github-actions-c747841-security-scans.png)
 
