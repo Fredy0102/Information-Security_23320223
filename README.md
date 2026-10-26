@@ -38,6 +38,84 @@ curl -sS -X POST http://127.0.0.1:5000/auth/login \
 curl -i http://127.0.0.1:5000/api/data -H "Authorization: Bearer $TOKEN"
 ```
 
+## Step-by-step work evidence
+
+The screenshots below follow the order used to build and verify the project. They are stored in `evidence/` so the README images remain available in the repository.
+
+### Step 1 — Prepare the environment and repository
+
+This screenshot records the starting project environment and Git setup.
+
+![Step 1: environment and Git setup](evidence/step-01-environment-and-git.png)
+
+### Step 2 — Run the API tests
+
+The initial test run checks the API behavior before demonstrating requests manually.
+
+![Step 2: API tests](evidence/step-02-api-tests.png)
+
+### Step 3 — Start the API server
+
+The server runs locally on `127.0.0.1:5000` for the request demonstrations.
+
+![Step 3: API server started](evidence/step-03-api-server-started.png)
+
+The following screenshot also captures the test and server output together:
+
+![API tests and server output](evidence/api-tests-and-server.png)
+
+### Step 4 — Confirm anonymous requests are rejected
+
+An unauthenticated request to the protected API endpoint should receive an unauthorized response.
+
+![Step 4: anonymous access denied](evidence/step-04-anonymous-access-denied.png)
+
+### Step 5 — Log in and access protected data
+
+After login, the client sends the returned bearer token to access the protected data endpoint.
+
+![Step 5: authenticated data access](evidence/step-05-authenticated-data-access.png)
+
+This screenshot provides additional authentication-flow evidence:
+
+![API authentication results](evidence/api-authentication-results.png)
+
+### Step 6 — Create and retrieve a post
+
+The authenticated client creates a post and then reads it back from the API.
+
+![Step 6: create and read a post](evidence/step-06-create-and-read-post.png)
+
+### Step 7 — Run tests and dependency checks locally
+
+These screenshots document the local test and audit results at two points in the work.
+
+![Step 7: tests and dependency audit](evidence/step-08-tests-and-audit-clean.png)
+
+![Step 7: updated tests and dependency audit](evidence/step-08-upgraded-tests-and-audit.png)
+
+### Step 8 — Commit the completed work
+
+The local Git commit records the implementation in the repository history.
+
+![Step 8: local Git commit](evidence/step-09-local-git-commit.png)
+
+### Step 9 — Check Git identity and remote
+
+This screenshot records the configured Git identity and GitHub remote used for publishing.
+
+![Step 9: Git identity and remote](evidence/step-10-git-identity-and-remote.png)
+
+### Step 10 — Verify the automated GitHub Actions workflow
+
+The workflow runs Bandit for static analysis, pip-audit for dependency checks, and pytest. This run is [Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907). The logs show the expected B105 `nosec` notice for the standard `Bearer` token-type label, no known dependency vulnerabilities, and a successful upload of the scanner-report artifact.
+
+![Step 10: Bandit, pip-audit, and scanner-report artifact upload](evidence/github-actions-c747841-security-scans.png)
+
+The next screenshot shows the API tests passing and the job completing successfully.
+
+![Step 10: tests and successful job completion](evidence/github-actions-c747841-tests-and-cleanup.png)
+
 ## Security controls
 
 - **SQL injection:** SQLite statements bind values with `?` placeholders. User-controlled values never become SQL syntax.
