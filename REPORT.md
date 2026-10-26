@@ -34,7 +34,7 @@ On 2026-10-25, the local checks completed with:
 - pip-audit: **no known vulnerabilities** in the 3 pinned runtime dependencies.
 - `pip check`: **no broken requirements**.
 
-JSON outputs are in `evidence/`. These results were produced locally. The earlier workflow was verified by [GitHub Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907), commit `c747841`. That job completed successfully in 29 seconds, but it predates the OWASP Dependency-Check step and therefore is not evidence that the new scan ran. Verify the latest run after this change; the `security-reports` artifact should include the HTML Dependency-Check report. The earlier run showed the expected Bandit B105 suppression notice, no known vulnerabilities from pip-audit, **4 passed** API tests, and a successful artifact upload.
+JSON outputs are in `evidence/`. These local results are distinct from CI. The updated workflow succeeded in [GitHub Actions run 40273187698](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40273187698), commit `ec1a9d7`. The job logs show Bandit, pip-audit, OWASP Dependency-Check, all **4 API tests**, and artifact upload succeeded. The downloadable `security-reports` artifact includes `dependency-check-report.html`. The previous run 40263674907 predates Dependency-Check and is retained only as historical screenshot evidence.
 
 Screenshots from the run:
 
@@ -61,7 +61,7 @@ The lab steps are: change to `cve-lab/CVE-2018-10933`; run `docker compose up --
 
 ## 6. Deliverables
 
-Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, API/CI screenshots, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and text observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The latest Actions run and `security-reports` artifact must be checked after the new Dependency-Check step is pushed. CVE terminal screenshots are not yet included.
+Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, API/CI screenshots, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and text observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The successful updated Actions run and `security-reports` artifact are available at [run 40273187698](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40273187698). CVE terminal screenshots are not yet included.
 
 ## 7. Control questions
 

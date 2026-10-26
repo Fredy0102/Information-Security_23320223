@@ -112,7 +112,7 @@ The workflow runs Bandit for static analysis, OWASP Dependency-Check and pip-aud
 
 ![Step 10: Bandit, pip-audit, and scanner-report artifact upload](evidence/github-actions-c747841-security-scans.png)
 
-These existing screenshots are from an earlier successful run, before OWASP Dependency-Check was added; they do not prove the new step ran. The new run is triggered by the commit containing this workflow change. Open [GitHub Actions](https://github.com/Fredy0102/Information-Security_23320223/actions), select the latest successful run, and download `security-reports` to inspect `dependency-check-report.html`.
+These existing screenshots are from an earlier successful run, before OWASP Dependency-Check was added; they do not prove the new step ran. The updated workflow was verified by [Actions run 40273187698](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40273187698) on commit `ec1a9d7`. The Dependency-Check, pip-audit, Bandit, API test, and artifact-upload steps all succeeded. Download the `security-reports` artifact from that run to inspect `dependency-check-report.html`.
 
 The next screenshot shows API tests passing in that earlier run.
 
@@ -127,7 +127,7 @@ The next screenshot shows API tests passing in that earlier run.
 
 ## CI security scanning
 
-GitHub Actions runs Bandit (SAST), OWASP Dependency-Check and pip-audit (SCA), and pytest on every push and pull request. It uploads the Bandit JSON, pip-audit JSON, and Dependency-Check HTML report as the `security-reports` artifact. Dependency-Check uses its experimental Python analyzer, enabled explicitly for the pinned `requirements.txt`; pip-audit remains as a complementary Python SCA check. The checked-in screenshots show a previous successful run and predate the new Dependency-Check step. Verify the latest run and download its artifact from [GitHub Actions](https://github.com/Fredy0102/Information-Security_23320223/actions) before treating the new scan as passed.
+GitHub Actions runs Bandit (SAST), OWASP Dependency-Check and pip-audit (SCA), and pytest on every push and pull request. It uploads the Bandit JSON, pip-audit JSON, and Dependency-Check HTML report as the `security-reports` artifact. Dependency-Check uses its experimental Python analyzer, enabled explicitly for the pinned `requirements.txt`; pip-audit remains as a complementary Python SCA check. [Actions run 40273187698](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40273187698) succeeded on commit `ec1a9d7`, including both SCA scans, Bandit, all 4 API tests, and artifact upload. The checked-in screenshots show a previous successful run and predate Dependency-Check; use the linked run and artifact as evidence for the new scanner.
 
 ## CVE study: CVE-2018-10933
 
@@ -184,4 +184,4 @@ On 2026-10-25: 4 pytest tests passed; Bandit reported zero unsuppressed findings
 
 ## Submission note
 
-The repository now configures both OWASP Dependency-Check and pip-audit. The latest Action must complete successfully before claiming the newly added Dependency-Check scan passed. Actual CVE command output is recorded, but CVE terminal screenshots still need to be captured during a run.
+The repository configures both OWASP Dependency-Check and pip-audit. The new Dependency-Check workflow run succeeded: [run 40273187698](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40273187698). Actual CVE command output is recorded, but CVE terminal screenshots still need to be captured during a run.
