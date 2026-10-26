@@ -13,7 +13,7 @@ Develop a small REST API with protections against SQL injection, cross-site scri
 
 ## 1. Stack and project
 
-The application uses Python 3, Flask, SQLite, PyJWT, and Werkzeug's scrypt password hashing. The GitHub Actions workflow runs tests, Bandit SAST, and pip-audit SCA on push and pull request events. The API source is `app.py`; the workflow is `.github/workflows/ci.yml`.
+The application uses Python 3, Flask, SQLite, PyJWT, and Werkzeug's scrypt password hashing. The GitHub Actions workflow runs tests, Bandit SAST, OWASP Dependency-Check, and pip-audit SCA on push and pull request events. The API source is `app.py`; the workflow is `.github/workflows/ci.yml`.
 
 ## 2. API and security design
 
@@ -23,7 +23,7 @@ The seeded account (`student / ChangeMe123!`) is for the loopback-only education
 
 ## 3. CI/CD and scanners
 
-The workflow runs Bandit (SAST), pip-audit (SCA), and pytest on pushes and pull requests. It uploads JSON scanner reports as the `security-reports` artifact. The Bandit B105 alert on the literal `Bearer` is a false positive: this is the standard HTTP authentication scheme label, not a credential; the source documents that narrow suppression.
+The workflow runs Bandit (SAST), OWASP Dependency-Check and pip-audit (SCA), and pytest on pushes and pull requests. It uploads scanner reports as the `security-reports` artifact. Dependency-Check scans the pinned `requirements.txt` with its experimental Python analyzer enabled and writes an HTML report; pip-audit is retained as an additional Python-focused check. The Bandit B105 alert on the literal `Bearer` is a false positive: this is the standard HTTP authentication scheme label, not a credential; the source documents that narrow suppression.
 
 ### Local results
 
@@ -34,7 +34,7 @@ On 2026-10-25, the local checks completed with:
 - pip-audit: **no known vulnerabilities** in the 3 pinned runtime dependencies.
 - `pip check`: **no broken requirements**.
 
-JSON outputs are in `evidence/`. These results were produced locally. The updated workflow was also verified by [GitHub Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907), commit `c747841`. The job completed successfully in 29 seconds: Bandit wrote `evidence/bandit-report.json` and logged only the expected B105 `nosec` suppression notice for the `Bearer` token-type label; pip-audit reported `No known vulnerabilities found`; pytest reported **4 passed**; and the `security-reports` artifact uploaded successfully. This is the result of that specific run, not a general guarantee about future dependency states.
+JSON outputs are in `evidence/`. These results were produced locally. The earlier workflow was verified by [GitHub Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907), commit `c747841`. That job completed successfully in 29 seconds, but it predates the OWASP Dependency-Check step and therefore is not evidence that the new scan ran. Verify the latest run after this change; the `security-reports` artifact should include the HTML Dependency-Check report. The earlier run showed the expected Bandit B105 suppression notice, no known vulnerabilities from pip-audit, **4 passed** API tests, and a successful artifact upload.
 
 Screenshots from the run:
 
@@ -57,11 +57,11 @@ The local Docker comparison used loopback-only port mappings: vulnerable libssh 
 | libssh 0.8.1 vulnerable service | `uid=0(root) gid=0(root) groups=0(root)` without supplying credentials | Authentication bypass reproduced in the container |
 | libssh 0.8.4 fixed service | The server did not open a command channel; the proof timed out opening it | The same bypass did not succeed |
 
-The implementation, exact commands, and observations are recorded in `evidence/CVE-2018-10933-results.md` and `cve-lab/CVE-2018-10933/README.md`. The report records the fixed result as observed (channel timeout/closure), rather than assuming a particular protocol error code.
+The lab steps are: change to `cve-lab/CVE-2018-10933`; run `docker compose up --build -d`; create a Python virtual environment and install `requirements.txt`; run `python verify_local.py --port 2222` against vulnerable 0.8.1; run the same proof with `--port 2223` against fixed 0.8.4; then clean up with `docker compose down --rmi local`. The proof is hardcoded to loopback and only runs `id`. Detailed instructions and recorded outputs are in `README.md`, `cve-lab/CVE-2018-10933/README.md`, and `evidence/CVE-2018-10933-results.md`. The results file records the observed fixed result (channel timeout/closure), rather than assuming a particular protocol error code. Actual terminal screenshots for these two CVE results still need to be captured during a run; the checked-in record is text, not a screenshot.
 
 ## 6. Deliverables
 
-Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, evidence screenshots, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The successful Actions run and downloadable `security-reports` artifact are available at [run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907).
+Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, API/CI screenshots, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and text observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The latest Actions run and `security-reports` artifact must be checked after the new Dependency-Check step is pushed. CVE terminal screenshots are not yet included.
 
 ## 7. Control questions
 

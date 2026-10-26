@@ -24,6 +24,17 @@ jobs:
         run: bandit -r app.py -f json -o evidence/bandit-report.json
       - name: SCA with pip-audit
         run: pip-audit -r requirements.txt --format json --output evidence/pip-audit-report.json
+      - name: SCA with OWASP Dependency-Check
+        run: |
+          mkdir -p evidence/dependency-check
+          docker pull owasp/dependency-check:13.0.0
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src" \
+            owasp/dependency-check:13.0.0 \
+            --scan /src/requirements.txt \
+            --enableExperimental \
+            --format HTML \
+            --out /src/evidence/dependency-check
       - name: Upload scanner reports
         if: always()
         uses: actions/upload-artifact@v6
@@ -32,6 +43,7 @@ jobs:
           path: |
             evidence/bandit-report.json
             evidence/pip-audit-report.json
+            evidence/dependency-check/dependency-check-report.html
           if-no-files-found: warn
       - name: Run API tests
         env:

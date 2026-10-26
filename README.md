@@ -108,11 +108,13 @@ This screenshot records the configured Git identity and GitHub remote used for p
 
 ### Step 10 — Verify the automated GitHub Actions workflow
 
-The workflow runs Bandit for static analysis, pip-audit for dependency checks, and pytest. This run is [Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907). The logs show the expected B105 `nosec` notice for the standard `Bearer` token-type label, no known dependency vulnerabilities, and a successful upload of the scanner-report artifact.
+The workflow runs Bandit for static analysis, OWASP Dependency-Check and pip-audit for dependency checks, and pytest. The OWASP scan is pinned to the `13.0.0` container image and enables Dependency-Check's experimental Python analyzer for `requirements.txt`. pip-audit remains as a second Python-focused dependency check. All scanner reports are uploaded in the `security-reports` artifact.
 
 ![Step 10: Bandit, pip-audit, and scanner-report artifact upload](evidence/github-actions-c747841-security-scans.png)
 
-The next screenshot shows the API tests passing and the job completing successfully.
+These existing screenshots are from an earlier successful run, before OWASP Dependency-Check was added; they do not prove the new step ran. The new run is triggered by the commit containing this workflow change. Open [GitHub Actions](https://github.com/Fredy0102/Information-Security_23320223/actions), select the latest successful run, and download `security-reports` to inspect `dependency-check-report.html`.
+
+The next screenshot shows API tests passing in that earlier run.
 
 ![Step 10: tests and successful job completion](evidence/github-actions-c747841-tests-and-cleanup.png)
 
@@ -125,13 +127,38 @@ The next screenshot shows the API tests passing and the job completing successfu
 
 ## CI security scanning
 
-GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The updated workflow passed in [Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907): pip-audit reported no known vulnerabilities, all 4 API tests passed, and the scanner-report artifact uploaded successfully. Bandit logs the expected B105 `nosec` notice for the standard `Bearer` token-type label. Screenshots are in `evidence/github-actions-c747841-security-scans.png` and `evidence/github-actions-c747841-tests-and-cleanup.png`.
+GitHub Actions runs Bandit (SAST), OWASP Dependency-Check and pip-audit (SCA), and pytest on every push and pull request. It uploads the Bandit JSON, pip-audit JSON, and Dependency-Check HTML report as the `security-reports` artifact. Dependency-Check uses its experimental Python analyzer, enabled explicitly for the pinned `requirements.txt`; pip-audit remains as a complementary Python SCA check. The checked-in screenshots show a previous successful run and predate the new Dependency-Check step. Verify the latest run and download its artifact from [GitHub Actions](https://github.com/Fredy0102/Information-Security_23320223/actions) before treating the new scan as passed.
 
 ## CVE study: CVE-2018-10933
 
 The practical comparison uses libssh 0.8.1 (vulnerable) and 0.8.4 (fixed). The flaw is an SSH server authentication bypass: a vulnerable server may accept a client-sent authentication-success message before credentials are checked. In the isolated local lab, the vulnerable instance allowed the proof to run the harmless `id` command as container root; the 0.8.4 instance rejected the bypass before a command channel opened. Both ports bind only to `127.0.0.1`. See the [official libssh advisory](https://www.libssh.org/security/advisories/CVE-2018-10933.txt) and [Vulhub's reproduction](https://github.com/vulhub/vulhub/tree/master/libssh/CVE-2018-10933).
 
-Exact setup and observations are in [`cve-lab/CVE-2018-10933/README.md`](cve-lab/CVE-2018-10933/README.md) and [`evidence/CVE-2018-10933-results.md`](evidence/CVE-2018-10933-results.md).
+### Reproduce and compare the fixed version
+
+Run these steps from the repository root. They start two disposable containers; Compose publishes both SSH ports on loopback only.
+
+```sh
+cd cve-lab/CVE-2018-10933
+docker compose up --build -d
+docker compose ps
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python verify_local.py --port 2222
+python verify_local.py --port 2223
+docker compose down --rmi local
+```
+
+The first proof targets vulnerable libssh 0.8.1. The second sends the same proof to fixed libssh 0.8.4. The proof code is constrained to `127.0.0.1`, permits only these two ports, sends no credentials, and runs only `id` if a command channel opens. The observed comparison is recorded in [`evidence/CVE-2018-10933-results.md`](evidence/CVE-2018-10933-results.md):
+
+```text
+Port 2222 (vulnerable): uid=0(root) gid=0(root) groups=0(root)
+Port 2223 (fixed):      Authentication bypass was rejected or the service closed the session: Timeout opening channel
+```
+
+To make the requested visual evidence, capture the terminal showing each command and its corresponding output while running the steps above, then add those unedited captures under `evidence/` and link them here. The repository currently contains the reproducible commands and recorded output, but does not yet contain actual CVE proof screenshots.
+
+Exact setup and observations are also in [`cve-lab/CVE-2018-10933/README.md`](cve-lab/CVE-2018-10933/README.md).
 
 ## Local verification
 
@@ -157,4 +184,4 @@ On 2026-10-25: 4 pytest tests passed; Bandit reported zero unsuppressed findings
 
 ## Submission note
 
-The linked Actions run completed successfully, including the tests, SAST, SCA, and report upload. The course manual's preferred SCA tool should be confirmed with the instructor; this Python project uses pip-audit for its pinned dependencies.
+The repository now configures both OWASP Dependency-Check and pip-audit. The latest Action must complete successfully before claiming the newly added Dependency-Check scan passed. Actual CVE command output is recorded, but CVE terminal screenshots still need to be captured during a run.
