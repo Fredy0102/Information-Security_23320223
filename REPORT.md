@@ -34,7 +34,13 @@ On 2026-10-25, the local checks completed with:
 - pip-audit: **no known vulnerabilities** in the 3 pinned runtime dependencies.
 - `pip check`: **no broken requirements**.
 
-JSON outputs are in `evidence/`. These results were produced locally. The first successful GitHub Actions run for this update is [run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796); its test, SAST, SCA, and artifact-upload steps all completed successfully.
+JSON outputs are in `evidence/`. These results were produced locally. The updated workflow was also verified by [GitHub Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907), commit `c747841`. The job completed successfully in 29 seconds: Bandit wrote `evidence/bandit-report.json` and logged only the expected B105 `nosec` suppression notice for the `Bearer` token-type label; pip-audit reported `No known vulnerabilities found`; pytest reported **4 passed**; and the `security-reports` artifact uploaded successfully. This is the result of that specific run, not a general guarantee about future dependency states.
+
+Screenshots from the run:
+
+![GitHub Actions Bandit, pip-audit, and artifact upload results](evidence/github-actions-c747841-security-scans.png)
+
+![GitHub Actions pytest result and successful job cleanup](evidence/github-actions-c747841-tests-and-cleanup.png)
 
 ## 4. CVE analysis: CVE-2018-10933
 
@@ -55,7 +61,7 @@ The implementation, exact commands, and observations are recorded in `evidence/C
 
 ## 6. Deliverables
 
-Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The successful Actions run and downloadable `security-reports` artifact are available at [run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796).
+Included: API source, pinned runtime and development requirements, tests, GitHub Actions workflow, this report, evidence screenshots, local scanner JSON reports, and the vulnerable/fixed CVE lab instructions and observations. The repository is public at [Information-Security_23320223](https://github.com/Fredy0102/Information-Security_23320223). The successful Actions run and downloadable `security-reports` artifact are available at [run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907).
 
 ## 7. Control questions
 

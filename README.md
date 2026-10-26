@@ -47,7 +47,7 @@ curl -i http://127.0.0.1:5000/api/data -H "Authorization: Bearer $TOKEN"
 
 ## CI security scanning
 
-GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The first successful run for this update is [Actions run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796). The local scan results for this checkout are in `evidence/`.
+GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The updated workflow passed in [Actions run 40263674907](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40263674907): pip-audit reported no known vulnerabilities, all 4 API tests passed, and the scanner-report artifact uploaded successfully. Bandit logs the expected B105 `nosec` notice for the standard `Bearer` token-type label. Screenshots are in `evidence/github-actions-c747841-security-scans.png` and `evidence/github-actions-c747841-tests-and-cleanup.png`.
 
 ## CVE study: CVE-2018-10933
 
