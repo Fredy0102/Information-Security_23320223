@@ -1,3 +1,10 @@
 # CVE fix artifacts
 
-No Vulhub fix file is included yet because the suggested environment directory was not confirmed and Docker reproduction was not performed. After selecting and running a specific Vulhub environment, copy the modified compose/Dockerfile/source files here and document the vulnerable and fixed version, exact change, and verification evidence. Do not present an untested version edit as a verified fix.
+The coursework CVE comparison is CVE-2018-10933. The lab builds libssh 0.8.4
+for the fixed comparison service, while the vulnerable service uses the
+Vulhub-provided libssh 0.8.1 image. See
+[`../cve-lab/CVE-2018-10933/Dockerfile.fixed`](../cve-lab/CVE-2018-10933/Dockerfile.fixed)
+for the fixed build and
+[`../evidence/CVE-2018-10933-results.md`](../evidence/CVE-2018-10933-results.md)
+for observed verification results. The vulnerable and fixed tests were run
+against localhost-only Docker ports.

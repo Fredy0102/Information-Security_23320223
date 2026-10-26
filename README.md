@@ -49,11 +49,11 @@ curl -i http://127.0.0.1:5000/api/data -H "Authorization: Bearer $TOKEN"
 
 GitHub Actions runs Bandit (SAST), pip-audit (SCA), and pytest on every push and pull request. It uploads scanner JSON reports as the `security-reports` artifact. The first successful run for this update is [Actions run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796). The local scan results for this checkout are in `evidence/`.
 
-## CVE study: CVE-2021-41773
+## CVE study: CVE-2018-10933
 
-The practical comparison uses Apache HTTP Server 2.4.49 (affected) and 2.4.51 (fixed). Apache describes CVE-2021-41773 as a path-normalization flaw that can allow path traversal when access-control configuration is also vulnerable. The lab verifies file disclosure only; it does not enable CGI or execute commands. See [Apache's security advisories](https://httpd.apache.org/security/vulnerabilities_24.html) and [Vulhub's reproduction](https://github.com/vulhub/vulhub/tree/master/httpd/CVE-2021-41773).
+The practical comparison uses libssh 0.8.1 (vulnerable) and 0.8.4 (fixed). The flaw is an SSH server authentication bypass: a vulnerable server may accept a client-sent authentication-success message before credentials are checked. In the isolated local lab, the vulnerable instance allowed the proof to run the harmless `id` command as container root; the 0.8.4 instance rejected the bypass before a command channel opened. Both ports bind only to `127.0.0.1`. See the [official libssh advisory](https://www.libssh.org/security/advisories/CVE-2018-10933.txt) and [Vulhub's reproduction](https://github.com/vulhub/vulhub/tree/master/libssh/CVE-2018-10933).
 
-The vulnerable and fixed instances were tested locally in disposable Docker containers bound only to `127.0.0.1`. The vulnerable version returned HTTP 200 and a `root:` entry from the container's `/etc/passwd`; the fixed version returned HTTP 400 and did not include that file content. The containers and locally built image were removed after verification. Exact steps and observations are in [`cve-lab/CVE-2021-41773/README.md`](cve-lab/CVE-2021-41773/README.md) and [`evidence/CVE-2021-41773-results.md`](evidence/CVE-2021-41773-results.md).
+Exact setup and observations are in [`cve-lab/CVE-2018-10933/README.md`](cve-lab/CVE-2018-10933/README.md) and [`evidence/CVE-2018-10933-results.md`](evidence/CVE-2018-10933-results.md).
 
 ## Local verification
 

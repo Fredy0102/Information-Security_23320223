@@ -36,29 +36,22 @@ On 2026-10-25, the local checks completed with:
 
 JSON outputs are in `evidence/`. These results were produced locally. The first successful GitHub Actions run for this update is [run 40181922796](https://github.com/Fredy0102/Information-Security_23320223/actions/runs/40181922796); its test, SAST, SCA, and artifact-upload steps all completed successfully.
 
-## 4. CVE analysis: CVE-2021-41773
+## 4. CVE analysis: CVE-2018-10933
 
-Apache HTTP Server 2.4.49 introduced a path-normalization flaw. Under vulnerable access-control configuration, encoded dot segments can traverse outside the intended document root. Apache 2.4.50's fix was incomplete for the related CVE-2021-42013; 2.4.51 contains the fix. References: [Apache HTTP Server security advisories](https://httpd.apache.org/security/vulnerabilities_24.html) and [Vulhub CVE-2021-41773 lab](https://github.com/vulhub/vulhub/tree/master/httpd/CVE-2021-41773).
+CVE-2018-10933 is an authentication-bypass flaw in the libssh server implementation. Affected servers could accept an SSH2_MSG_USERAUTH_SUCCESS message sent by the client before a valid authentication request, incorrectly treating the client as authenticated. This can expose server resources available to the resulting session. The official advisory identifies libssh 0.8.4 and 0.7.6 as fixed releases. References: [libssh security advisory](https://www.libssh.org/security/advisories/CVE-2018-10933.txt) and [Vulhub CVE-2018-10933 lab](https://github.com/vulhub/vulhub/tree/master/libssh/CVE-2018-10933).
 
-The impact demonstrated here is file disclosure from the disposable container. CGI was not enabled and no command execution was attempted. Real impact depends on the server version and access-control configuration.
+The demonstration used disposable local containers and ran only `id` after the bypass, confirming the session's container identity. It did not access host files or run arbitrary commands. Real impact depends on server version, configuration, and the privileges of the server process.
 
 ## 5. Reproduction and verification record
 
-The local Docker comparison used loopback-only port mappings: vulnerable Apache 2.4.49 at `127.0.0.1:8181`, fixed Apache 2.4.51 at `127.0.0.1:8182`.
-
-The documented traversal request was sent using curl's `--path-as-is` option to preserve encoded dot segments:
-
-```sh
-curl -i --path-as-is 'http://127.0.0.1:8181/icons/.%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd'
-curl -i --path-as-is 'http://127.0.0.1:8182/icons/.%2e/%2e%2e/%2e%2e/%2e%2e/etc/passwd'
-```
+The local Docker comparison used loopback-only port mappings: vulnerable libssh 0.8.1 at `127.0.0.1:2222` and fixed libssh 0.8.4 at `127.0.0.1:2223`. The same localhost-only proof sent the authentication-success protocol message and attempted to open a session that runs `id`.
 
 | Test | Observed response | Result |
 |---|---|---|
-| Apache 2.4.49 vulnerable configuration | HTTP 200; body contained a `root:` entry from the container `/etc/passwd` | File disclosure reproduced |
-| Apache 2.4.51 fixed version | HTTP 400 Bad Request; body contained no `root:` entry | Same file disclosure was blocked |
+| libssh 0.8.1 vulnerable service | `uid=0(root) gid=0(root) groups=0(root)` without supplying credentials | Authentication bypass reproduced in the container |
+| libssh 0.8.4 fixed service | The server did not open a command channel; the proof timed out opening it | The same bypass did not succeed |
 
-The complete safe excerpt and lab setup are recorded in `evidence/CVE-2021-41773-results.md` and `cve-lab/CVE-2021-41773/README.md`. After the comparison, `docker compose --profile vulnerable --profile fixed down --rmi local` stopped and removed the containers, network, and locally built image.
+The implementation, exact commands, and observations are recorded in `evidence/CVE-2018-10933-results.md` and `cve-lab/CVE-2018-10933/README.md`. The report records the fixed result as observed (channel timeout/closure), rather than assuming a particular protocol error code.
 
 ## 6. Deliverables
 
