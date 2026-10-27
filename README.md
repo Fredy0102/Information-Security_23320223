@@ -178,13 +178,31 @@ python -m pip check
 
 On 2026-10-25: 4 pytest tests passed; Bandit reported zero unsuppressed findings (the standard `Bearer` auth-scheme label is explicitly suppressed as a B105 false positive); pip-audit found no known vulnerabilities in the three pinned runtime dependencies; `pip check` found no broken requirements. These are local results, not a claim about the GitHub-hosted workflow.
 
-## Control questions
+## Control Questions and Answers
 
-1. **Why bcrypt/scrypt rather than SHA-256?** Password hashing should be intentionally slow and salted. Fast SHA-256 supports far more guesses per second; a password hashing algorithm raises the cost of offline brute force and unique salts prevent equal passwords from producing equal stored values.
-2. **SAST vs DAST?** SAST examines source or bytecode without running the application and can locate risky code paths early. DAST sends requests to a running system and observes externally visible behavior; it can find runtime issues but does not directly identify every root cause.
-3. **How does JWT work?** A JWT carries claims in a header and payload, plus a signature over the encoded parts. The server validates the signature with its configured key and checks claims such as issuer and expiry. A signed JWT is not automatically encrypted, so secrets must not be placed in its payload.
-4. **Risks of not auditing dependencies?** Known vulnerable or abandoned packages can introduce exploitable flaws, license or supply-chain risk, and hidden transitive dependencies. An inventory and timely update process help identify and prioritize these issues.
-5. **Why Docker and Vulhub?** Containers make vulnerable versions reproducible and easier to reset, while Vulhub supplies documented, isolated compose environments. This reduces host changes and supports before/after comparison, though network isolation and cleanup are still necessary.
+1. **Why is password hashing with algorithms like bcrypt preferable to using SHA-256?**
+   SHA-256 is designed to be fast, so an attacker with a stolen password database can test many guesses quickly. Password hashing algorithms such as bcrypt and scrypt are deliberately slower and use a unique salt for each password. This makes offline guessing more expensive and prevents identical passwords from producing identical stored hashes. In this API, passwords are stored with Werkzeug's scrypt-based password hashing.
+
+2. **What is the main difference between SAST and DAST?**
+   SAST examines source code without running the application and can identify risky code patterns early. DAST sends requests to a running application and observes its externally visible behavior. In this work, Bandit performs SAST; the ZAP scan of Juice Shop in Work 2 is a DAST exercise.
+
+3. **Describe how a JWT works. What does it contain, and how does the server verify it?**
+   A JWT has an encoded header, a claims payload, and a signature. After successful login, the API signs a short-lived token. On protected endpoints, the server verifies the signature with its configured secret and checks claims such as issuer and expiration before returning data. A signed JWT is not encrypted by default, so its payload must not contain secrets.
+
+4. **What risks arise if third-party dependencies are not audited?**
+   Direct or transitive packages may contain known vulnerabilities, be abandoned, or introduce supply-chain risks. Without an audit, those issues can remain unnoticed and expose the application to attacks that already have public fixes. The CI workflow uses OWASP Dependency-Check and pip-audit to identify known dependency issues and produce reports.
+
+5. **What advantages do Docker and Vulhub provide for studying cybersecurity compared with installing vulnerable software directly on your machine?**
+   Docker and Vulhub provide repeatable, isolated environments with specific software versions and documented steps. This makes vulnerable behavior easier to reproduce and compare with a fixed version, while reducing changes to the host system. Containers can also be stopped and removed after the experiment. The CVE lab in this work bound its services to localhost.
+
+6. **What is the difference between a vulnerability and an exploit? What did you reproduce in this work?**
+   A vulnerability is a weakness in software or its configuration; an exploit is a technique that uses that weakness to cause an unintended result. This work reproduced the authentication-bypass behavior of CVE-2018-10933 in the isolated libssh lab: the vulnerable service accepted the proof and opened a channel for a harmless `id` command, while the fixed version rejected it.
+
+7. **Why is regression testing important after applying a security patch?**
+   A patch can stop the attack but also unintentionally break legitimate behavior. Regression testing checks both outcomes: the previously successful attack should now be rejected, and normal functionality should continue to work. In this lab, the same proof was tested against the fixed libssh service, and the API test suite checks the expected routes and authentication behavior.
+
+8. **How does reproducing known CVEs help a security specialist, such as a pentester or SOC analyst?**
+   A controlled reproduction helps specialists recognize vulnerable versions, connect technical weaknesses to observable evidence, assess impact, and choose an appropriate remediation. It also provides a repeatable way to verify that an upgrade or configuration change works. In practice, these skills support vulnerability triage, incident investigation, and clear communication of risk.
 
 ## Submission note
 
